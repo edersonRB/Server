@@ -212,7 +212,7 @@ public class ServerController {
     public String generateToken(int id, boolean isAdmin) {
         return Jwts.builder()
                 .claim("user_id", id)
-                .claim("admin", isAdmin)
+                .claim("isAdmin", isAdmin)
                 .setSubject(Integer.toString(id))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
