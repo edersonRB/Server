@@ -48,11 +48,14 @@ public class ServerController {
 
     private void initializeUsers() {
         //123456
-        User exampleAdmin = new User(idCounter, "admin", "a", hash("E10ADC3949BA59ABBE56E057F20F883E"), true, "");
+        User exampleAdmin = new User(idCounter, "admin 1", "admin", hash("E10ADC3949BA59ABBE56E057F20F883E"), true, "");
+        idCounter++;
+        User secondAdmin = new User(idCounter, "admin 2", "admin2@email.com", hash("E10ADC3949BA59ABBE56E057F20F883E"), true, "");
         idCounter++;
         User exampleUser = new User(idCounter, "usuario default", "user@email.com", hash("E10ADC3949BA59ABBE56E057F20F883E"), false, "");
         idCounter++;
         userList.add(exampleAdmin);
+        userList.add(secondAdmin);
         userList.add(exampleUser);
     }
     
@@ -129,7 +132,6 @@ public class ServerController {
     
     private JSONObject getChangeUser(JSONObject requestJson) {
     	JSONObject responseJson = new JSONObject();
-    	System.out.println("Entrei Mudança de usuario");
     	try {
     		
     		int id;
