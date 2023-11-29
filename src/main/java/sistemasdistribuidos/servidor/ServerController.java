@@ -33,7 +33,11 @@ public class ServerController {
 
     private ArrayList<User> userList = new ArrayList<>();
 
+    private ArrayList<Point> pointList = new ArrayList<>();
+
     private int idCounter = 0;
+
+    private int pointIdCounter = 0;
 
     private boolean acceptingConnections = true;
 
@@ -83,9 +87,19 @@ public class ServerController {
             else if (requestJson.has("action") && (requestJson.getString("action").equals("autoedicao-usuario") || requestJson.getString("action").equals("edicao-usuario"))) {   	
                 responseJson = getChangeUser(requestJson);
             }
-            else if (requestJson.has("action") && (requestJson.getString("action").equals("excluir-proprio-usuario") || requestJson.getString("action").equals("excluir-usuario"))) {   	
+            else if (requestJson.has("action") && (requestJson.getString("action").equals("excluir-proprio-usuario") || requestJson.getString("action").equals("excluir-usuario"))) {
                 responseJson = getDeleteUser(requestJson);
-            } else {
+            }
+            else if (requestJson.has("action") && requestJson.getString("action").equals("cadastro-ponto")) {
+                responseJson = getRegisterPointResponse(requestJson);
+            }
+            else if (requestJson.has("action") && requestJson.getString("action").equals("listar-pontos")) {
+                responseJson = getListPoints(requestJson);
+            }
+            else if (requestJson.has("action") && (requestJson.getString("action").equals("excluir-ponto") )) {
+                responseJson = getDeletePoint(requestJson);
+            }
+            else {
                 responseJson.put("action", requestJson.has("action"));
                 responseJson.put("error", true);
                 responseJson.put("message", "Ação desconhecida");
@@ -123,6 +137,33 @@ public class ServerController {
         	}
         	responseJson.put("data", data);
         	data.put("users", users);        
+        }
+        catch(JSONException e) {
+            System.out.println(e.toString());
+        }
+        return responseJson;
+    }
+
+    private JSONObject getListPoints(JSONObject requestJson) {
+        JSONObject responseJson = new JSONObject();
+        try {
+
+            JSONArray pontos = new JSONArray();
+            JSONObject data = new JSONObject();
+
+            responseJson.put("message", "Sucesso");
+            responseJson.put("error", false);
+            responseJson.put("action", "listar-pontos");
+
+            for(Point point: pointList) {
+                JSONObject ponto = new JSONObject();
+                ponto.put("id", point.getId());
+                ponto.put("name", point.getName());
+                ponto.put("obs", point.getObs());
+                pontos.put(ponto);
+            }
+            responseJson.put("data", data);
+            data.put("pontos", pontos);
         }
         catch(JSONException e) {
             System.out.println(e.toString());
@@ -220,6 +261,29 @@ public class ServerController {
     	}
     	return responseJson;
     }
+
+    private JSONObject getDeletePoint(JSONObject requestJson) {
+        JSONObject responseJson = new JSONObject();
+        try {
+            for(Point point : pointList) {
+                if(point.getId() == Integer.parseInt(requestJson.getJSONObject("data").getString("ponto_id"))) {
+                    pointList.remove(point);
+
+                    responseJson.put("error", false);
+                    responseJson.put("message", "Ponto removido com sucesso!");
+                    responseJson.put("action", "excluir-ponto");
+
+                    return responseJson;
+                }
+            }
+            responseJson.put("error", true);
+            responseJson.put("message", "Ponto não encontrado!");
+            responseJson.put("action", "excluir-ponto");
+        } catch (JSONException e) {
+            System.out.println(e.toString());
+        }
+        return responseJson;
+    }
     
     private JSONObject getLogoutResponse(JSONObject requestJson) {
         JSONObject responseJson = new JSONObject();
@@ -292,6 +356,26 @@ public class ServerController {
             responseJson.put("action", "autocadastro-usuario");
             responseJson.put("error", false);
             responseJson.put("message", "Usuário cadastrado com sucesso");
+        }
+        catch (JSONException e) {
+            System.out.println(e.toString());
+        }
+        return responseJson;
+    }
+
+    private JSONObject getRegisterPointResponse(JSONObject requestJson) {
+        JSONObject responseJson = new JSONObject();
+        try {
+            String name = requestJson.getJSONObject("data").getString("name");
+            String obs = requestJson.getJSONObject("data").getString("obs");
+            int id = pointIdCounter++;
+
+            Point newPoint = new Point(id, name , obs);
+            System.out.println(newPoint.toString());
+            pointList.add(newPoint);
+            responseJson.put("action", "cadastro-ponto");
+            responseJson.put("error", false);
+            responseJson.put("message", "Ponto de referência cadastrado com sucesso");
         }
         catch (JSONException e) {
             System.out.println(e.toString());
