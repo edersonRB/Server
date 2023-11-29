@@ -38,6 +38,6 @@ public class Point {
 
     @Override
     public String toString() {
-        return "User [id=" + id + ", name=" + name + ", obs=" + obs + "]";
+        return "Point [id=" + id + ", name=" + name + ", obs=" + obs + "]";
     }
 }

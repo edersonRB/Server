@@ -25,20 +25,15 @@ import java.util.concurrent.Executors;
 
 public class ServerController {
     private String SECRET_KEY = "AoT3QFTTEkj16rCby/TPVBWvfSQHL3GeEz3zVwEd6LDrQDT97sgDY8HJyxgnH79jupBWFOQ1+7fRPBLZfpuA2lwwHqTgk+NJcWQnDpHn31CVm63Or5c5gb4H7/eSIdd+7hf3v+0a5qVsnyxkHbcxXquqk9ezxrUe93cFppxH4/kF/kGBBamm3kuUVbdBUY39c4U3NRkzSO+XdGs69ssK5SPzshn01axCJoNXqqj+ytebuMwF8oI9+ZDqj/XsQ1CLnChbsL+HCl68ioTeoYU9PLrO4on+rNHGPI0Cx6HrVse7M3WQBPGzOd1TvRh9eWJrvQrP/hm6kOR7KrWKuyJzrQh7OoDxrweXFH8toXeQRD8=";
-
     @FXML
     private TextField serverPort;
-
     private ExecutorService threadPool = Executors.newCachedThreadPool();
-
     private ArrayList<User> userList = new ArrayList<>();
-
     private ArrayList<Point> pointList = new ArrayList<>();
-
+    private ArrayList<Segment> segmentList = new ArrayList<>();
     private int idCounter = 0;
-
     private int pointIdCounter = 0;
-
+    private int segmentIdCounter = 0;
     private boolean acceptingConnections = true;
 
     @FXML
@@ -98,6 +93,15 @@ public class ServerController {
             }
             else if (requestJson.has("action") && (requestJson.getString("action").equals("excluir-ponto") )) {
                 responseJson = getDeletePoint(requestJson);
+            }
+            else if (requestJson.has("action") && requestJson.getString("action").equals("cadastro-segmento")) {
+                responseJson = getRegisterSegmentResponse(requestJson);
+            }
+            else if (requestJson.has("action") && requestJson.getString("action").equals("listar-segmentos")) {
+                responseJson = getListSegments(requestJson);
+            }
+            else if (requestJson.has("action") && (requestJson.getString("action").equals("excluir-segmento") )) {
+                responseJson = getDeleteSegment(requestJson);
             }
             else {
                 responseJson.put("action", requestJson.has("action"));
@@ -170,6 +174,49 @@ public class ServerController {
         }
         return responseJson;
     }
+
+    private JSONObject getListSegments(JSONObject requestJson) {
+        JSONObject responseJson = new JSONObject();
+        try {
+
+            JSONArray segmentos = new JSONArray();
+            JSONObject data = new JSONObject();
+
+            responseJson.put("message", "Sucesso");
+            responseJson.put("error", false);
+            responseJson.put("action", "listar-segmentos");
+
+            for(Segment segment: segmentList) {
+                JSONObject segmento = new JSONObject();
+                segmento.put("id", segment.getId());
+                segmento.put("direcao", segment.getDirection());
+                segmento.put("distancia", segment.getDistance());
+                segmento.put("obs", segment.getObs());
+
+                Point originPoint = segment.getOrigin();
+                JSONObject origin = new JSONObject();
+                origin.put("id",originPoint.getId());
+                origin.put("name",originPoint.getName());
+                origin.put("obs",originPoint.getObs());
+                segmento.put("ponto_origem",origin);
+
+                Point destinyPoint = segment.getDestiny();
+                JSONObject destiny = new JSONObject();
+                destiny.put("id",destinyPoint.getId());
+                destiny.put("name",destinyPoint.getName());
+                destiny.put("obs",destinyPoint.getObs());
+                segmento.put("ponto_destino",destiny);
+
+                segmentos.put(segmento);
+            }
+            responseJson.put("data", data);
+            data.put("segmentos", segmentos);
+        }
+        catch(JSONException e) {
+            System.out.println(e.toString());
+        }
+        return responseJson;
+    }
     
     private JSONObject getChangeUser(JSONObject requestJson) {
     	JSONObject responseJson = new JSONObject();
@@ -224,7 +271,7 @@ public class ServerController {
     	try {
     		if(requestJson.getString("action").equals("excluir-usuario")) {
     			for(User user : userList) {
-    				if(user.getId() == Integer.parseInt(requestJson.getJSONObject("data").getString("user_id"))) {
+    				if(user.getId() == requestJson.getJSONObject("data").getInt("user_id")) {
     					userList.remove(user);
 
     					responseJson.put("error", false);
@@ -266,7 +313,7 @@ public class ServerController {
         JSONObject responseJson = new JSONObject();
         try {
             for(Point point : pointList) {
-                if(point.getId() == Integer.parseInt(requestJson.getJSONObject("data").getString("ponto_id"))) {
+                if(point.getId() == requestJson.getJSONObject("data").getInt("ponto_id") ) {
                     pointList.remove(point);
 
                     responseJson.put("error", false);
@@ -284,7 +331,30 @@ public class ServerController {
         }
         return responseJson;
     }
-    
+
+    private JSONObject getDeleteSegment(JSONObject requestJson) {
+        JSONObject responseJson = new JSONObject();
+        try {
+            for(Segment segment : segmentList) {
+                if(segment.getId() == requestJson.getJSONObject("data").getInt("segmento_id") ) {
+                    segmentList.remove(segment);
+
+                    responseJson.put("error", false);
+                    responseJson.put("message", "Segmento removido com sucesso!");
+                    responseJson.put("action", "excluir-segmento");
+
+                    return responseJson;
+                }
+            }
+            responseJson.put("error", true);
+            responseJson.put("message", "Ponto não encontrado!");
+            responseJson.put("action", "excluir-ponto");
+        } catch (JSONException e) {
+            System.out.println(e.toString());
+        }
+        return responseJson;
+    }
+
     private JSONObject getLogoutResponse(JSONObject requestJson) {
         JSONObject responseJson = new JSONObject();
         try {
@@ -376,6 +446,37 @@ public class ServerController {
             responseJson.put("action", "cadastro-ponto");
             responseJson.put("error", false);
             responseJson.put("message", "Ponto de referência cadastrado com sucesso");
+        }
+        catch (JSONException e) {
+            System.out.println(e.toString());
+        }
+        return responseJson;
+    }
+    private JSONObject getRegisterSegmentResponse(JSONObject requestJson) {
+        JSONObject responseJson = new JSONObject();
+        try {
+            String direction = requestJson.getJSONObject("data").getJSONObject("segmento").getString("direcao");
+            String obs = requestJson.getJSONObject("data").getJSONObject("segmento").getString("obs");
+            int distance = requestJson.getJSONObject("data").getJSONObject("segmento").getInt("distancia");
+            int id = segmentIdCounter++;
+
+            int originId = requestJson.getJSONObject("data").getJSONObject("segmento").getJSONObject("ponto_origem").getInt("id");
+            String originName = requestJson.getJSONObject("data").getJSONObject("segmento").getJSONObject("ponto_origem").getString("name");
+            String originObs = requestJson.getJSONObject("data").getJSONObject("segmento").getJSONObject("ponto_origem").getString("obs");
+            Point originPoint = new Point(id,originName,originObs);
+
+            int destinyId = requestJson.getJSONObject("data").getJSONObject("segmento").getJSONObject("ponto_destino").getInt("id");
+            String destinyName = requestJson.getJSONObject("data").getJSONObject("segmento").getJSONObject("ponto_destino").getString("name");
+            String destinyObs = requestJson.getJSONObject("data").getJSONObject("segmento").getJSONObject("ponto_destino").getString("obs");
+            Point destinyPoint = new Point(id,originName,originObs);
+
+            Segment newSegment = new Segment(id, originPoint, destinyPoint, direction, distance, obs );
+
+            System.out.println(newSegment.toString());
+            segmentList.add(newSegment);
+            responseJson.put("action", "cadastro-segmento");
+            responseJson.put("error", false);
+            responseJson.put("message", "Segmento cadastrado com sucesso");
         }
         catch (JSONException e) {
             System.out.println(e.toString());
