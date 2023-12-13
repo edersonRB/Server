@@ -9,13 +9,16 @@ public class Segment {
     private int distance;
     private String obs;
 
-    public Segment(int id, Point origin, Point destiny, String direction, int distance, String obs) {
+    private boolean blocked;
+
+    public Segment(int id, Point origin, Point destiny, String direction, int distance, String obs, boolean blocked) {
         this.id = id;
         this.origin = origin;
         this.destiny = destiny;
         this.direction = direction;
         this.distance = distance;
         this.obs = obs;
+        this.blocked = blocked;
     }
 
     public int getId() {
@@ -66,6 +69,14 @@ public class Segment {
         this.obs = obs;
     }
 
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
+    }
+
     @Override
     public String toString() {
         return "Segment{" +
@@ -75,6 +86,7 @@ public class Segment {
                 ", direction='" + direction + '\'' +
                 ", distance=" + distance +
                 ", obs='" + obs + '\'' +
+                ", bloqueado='" + blocked + '\'' +
                 '}';
     }
 }

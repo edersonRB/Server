@@ -12,5 +12,7 @@
    <TextField fx:id="serverPort" text="23444" />
     <Button onAction="#onConnectButtonClick" text="Iniciar Servidor" />
 
+    <Button onAction="#onListUsersClick" text="Usuários logados" />
+
     <Label fx:id="welcomeText" prefHeight="18.0" prefWidth="155.0" />
 </VBox>
